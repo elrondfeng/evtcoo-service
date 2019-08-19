@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.javainuse.model.Employee;
 
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "http://localhost:4201")
 @RestController
 @RequestMapping({ "/employees" })
 public class TestController {
