@@ -290,6 +290,15 @@ def opt_main_wrapper(filepath='C:/Users/XDong/OneDrive - Duke Energy/Documents/P
     global data_1yr
     data_1yr=data[(data['Measure_date']>='2018-04-01') & (data['Measure_date']<='2019-03-31')]
     
+    #number of total days of charging 
+    global total_days
+    total_days=len(set(data_1yr[(data_1yr['Measure_weekday'] !=6)
+                    & (data_1yr['Measure_date']+timedelta(days=1) !='2018-05-28') 
+                    & (data_1yr['Measure_date']+timedelta(days=1) !='2018-09-03') 
+                    & (data_1yr['Measure_date']+timedelta(days=1) !='2018-11-22') 
+                    & (data_1yr['Measure_date']+timedelta(days=1) !='2018-12-25') 
+                    & (data_1yr['Measure_date']+timedelta(days=1) !='2019-01-01')]['DATE']))
+    
     #find peak demand per month
     peak_demand_1=data_1yr.loc[data_1yr['peak_flag']==1]
     
@@ -327,12 +336,51 @@ def opt_main_wrapper(filepath='C:/Users/XDong/OneDrive - Duke Energy/Documents/P
     total_price=total_on_peak*on_peak_rate+total_off_peak*off_peak_rate+total_base_demand*base_demand_rate+total_peak_demand*peak_demand_rate
     
     cost_summer,schedule_summer=opt_summer_wrapper(timeout=timeout)
+    #draw heatmap for schedule (summer)
+    m=np.zeros([NumOfEVs,Duration])
+    for i in range(numOfEVs):
+        m[i][schedule_summer[i]:schedule_summer[i]+chargingTime]=1
+        if pctLast1hr>0:
+            m[i][schedule_summer[i]+chargingTime-1]=pctLast1hr
+    
+        
+    df=pd.DataFrame(m,columns=[str(x+6)+'PM' if x+6<12 else str(x-6)+'AM'  for x in range(duration)])
+    df.index+=1
+    df2=df.sort_index(ascending=0)
+    plt.figure(figsize=(12,8))
+    ax = sns.heatmap(df2, square=True,cmap="Greens",annot=True,linewidth=0.1,linecolor='grey')
+    #plt.setp( ax.xaxis.get_majorticklabels(), rotation=45 )
+    plt.setp( ax.yaxis.get_majorticklabels(), rotation=0)
+    plt.title('Summer Charging Schedule')
+    plt.xlabel('Charging Time')
+    plt.ylabel('EV(Group) No.')
+    plt.show()
+    
 
     cost_winter,schedule_winter=opt_winter_wrapper(timeout=timeout)
     
+    #draw heatmap for schedule (winter)
+    m=np.zeros([NumOfEVs,Duration])
+    for i in range(numOfEVs):
+        m[i][schedule_summer[i]:schedule_summer[i]+chargingTime]=1
+        if pctLast1hr>0:
+            m[i][schedule_summer[i]+chargingTime-1]=pctLast1hr
     
     
-    dollar_mile=((cost_summer+cost_winter)*1.165)/(NumOfEVs*ConPerEV*ChargingTime*(1-RemainPct)*308)
+        
+    df=pd.DataFrame(m,columns=[str(x+6)+'PM' if x+6<12 else str(x-6)+'AM'  for x in range(duration)])
+    df.index+=1
+    df2=df.sort_index(ascending=0)
+    plt.figure(figsize=(12,8))
+    ax = sns.heatmap(df2, square=True,cmap="Greens",annot=True,linewidth=0.1,linecolor='grey')
+    #plt.setp( ax.xaxis.get_majorticklabels(), rotation=45 )
+    plt.setp( ax.yaxis.get_majorticklabels(), rotation=0 )
+    plt.title('Winter Charging Schedule')
+    plt.xlabel('Charging Time')
+    plt.ylabel('EV(Group) No.')
+    plt.show()
+    
+    dollar_mile=((cost_summer+cost_winter)*1.165)/(NumOfEVs*ConPerEV*ChargingTime*(1-RemainPct)*total_days)
     
     summer_schedule=[str(x+6)+'PM' if x+6<12 else str(x-6)+'AM'  for x in schedule_summer]
     winter_schedule=[str(x+6)+'PM' if x+6<12 else str(x-6)+'AM'  for x in schedule_winter]
