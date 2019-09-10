@@ -10,7 +10,7 @@ sys.path.append("C:/Users/XDong/OneDrive - Duke Energy/Documents/Projects/EV cha
 import warnings
 warnings.filterwarnings("ignore")
 
-import eFleet_opt as eFo
+import eFleet_optimization as eFo
 
 #test main wrapper
 total_cost_base,cost_summer,schedule_summer,cost_winter,schedule_winter,dollar_mile=eFo.opt_main_wrapper(filepath='C:/Users/XDong/OneDrive - Duke Energy/Documents/Projects/EV charging-florida/UPS Orlando 15 minute interval data.xlsx',
@@ -22,7 +22,7 @@ total_cost_base,cost_summer,schedule_summer,cost_winter,schedule_winter,dollar_m
                                                                                                          Duration=14, #hrs (6pm to 8am)
                                                                                                          ChargingTime=5, #hrs for charging a ev
                                                                                                          ConPerEV=75, #powerrate per block
-                                                                                                         RemainPct=0.25, #remaining percentage of battery life before charging
+                                                                                                         RemainPct=0, #remaining percentage of battery life before charging
                                                                                                          timeout=30# timeout(seconds) for optimization for summer/winter(seconds)
                                                                                                          )
 
